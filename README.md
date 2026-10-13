@@ -251,9 +251,15 @@ O valor real depende da consulta correspondente à data da despesa.
 
 #### Falha na consulta da cotação
 
-Caso o serviço externo não consiga fornecer uma cotação válida, o sistema interrompe o cadastro ou a atualização da despesa em USD e retorna um erro HTTP 503.
+Caso a consulta à cotação histórica falhe, o cadastro ou a atualização de uma despesa em USD preserva os dados informados, sem utilizar uma taxa arbitrária.
 
-Esse comportamento evita que uma despesa seja registrada utilizando uma cotação arbitrária ou não confirmada.
+A despesa é armazenada com status_conversao = pendente, enquanto os campos cotacao e valor_brl permanecem nulos. Os percentuais de rateio são validados e preservados, mas seus valores em reais também permanecem nulos.
+
+A API retorna a despesa cadastrada ou atualizada, permitindo identificar os registros que precisam de conversão posterior.
+
+Somente despesas com status_conversao = convertido entram nos totais dos relatórios financeiros.
+
+*Limitação:* ainda não existe uma rotina automática de reprocessamento das despesas pendentes. Essa funcionalidade poderá ser implementada com filas e tentativas posteriores de consulta à cotação.
 
 ---
 
@@ -740,7 +746,7 @@ As alterações relacionadas a despesas e rateios são executadas de maneira agr
 
 *Tratamento de indisponibilidade externa*
 
-O cadastro de despesas em USD depende de uma cotação obtida com sucesso, sem utilizar valores arbitrários em caso de falha.
+Em caso de falha na consulta da cotação, as operações individuais de cadastro e atualização preservam a despesa em USD com status pendente, mantendo os percentuais de rateio e deixando os valores em BRL nulos. Nenhuma cotação arbitrária é utilizada.
 
 *Importação com identificação de erros*
 
@@ -762,6 +768,27 @@ Entre as melhorias futuras estão:
 - Registro de logs mais detalhados para importações e falhas externas.
 - Documentação interativa da API com OpenAPI/Swagger.
 - Automatização de testes e validações por integração contínua.
+- Reprocessamento automático das despesas com conversão pendente, utilizando filas e tentativas programadas.
+- Ampliação dos testes de integração para importação CSV, conversão cambial e relatórios financeiros.
+
+### Decisões de escopo
+
+O processamento automático de despesas pendentes, a autenticação da API e a infraestrutura com Docker não foram incluídos nesta entrega para priorizar as funcionalidades centrais do desafio técnico dentro do prazo.
+
+O sistema preserva as despesas em USD quando a consulta cambial falha, mas o reprocessamento dessas despesas permanece como evolução futura.
+
+### Perguntas para o negócio antes da implantação em produção
+
+1. Qual regra de cotação deve ser utilizada: PTAX de venda, compra ou outra referência?
+2. Para fins de semana e feriados, devemos utilizar a última cotação disponível do dia útil anterior?
+3. Como devem ser tratadas despesas pendentes: reprocessamento automático, intervenção manual ou ambos?
+4. Qual prazo máximo é aceitável para regularizar uma despesa sem cotação?
+5. Quem poderá cadastrar, editar, excluir e consultar despesas e relatórios?
+6. Despesas pendentes devem aparecer nos relatórios em uma seção separada, além de serem excluídas dos totais em BRL?
+7. Como devem ser tratados lançamentos duplicados durante a importação CSV?
+8. É necessário manter histórico de alterações e trilha de auditoria das despesas?
+9. Existem limites de valor, períodos de fechamento financeiro ou regras de aprovação?
+10. Qual volume esperado de unidades, despesas e importações por mês?
 
 Esses itens representam sugestões de evolução e não funcionalidades já implementadas.
 

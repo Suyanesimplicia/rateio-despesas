@@ -16,12 +16,16 @@ class RelatorioController extends Controller
             'data_fim' => 'required|date|after_or_equal:data_inicio',
         ]);
 
+        // Soma somente despesas com conversão concluída.
+        // Despesas pendentes permanecem registradas, mas não
+        // entram no total financeiro até obterem a cotação.
         $totais = DB::table('rateios')
             ->join('despesas', 'despesas.id', '=', 'rateios.despesa_id')
             ->select(
                 'rateios.unidade_id',
                 DB::raw('SUM(rateios.valor_brl) AS total_brl')
             )
+            ->where('despesas.status_conversao', 'convertido')
             ->whereBetween('despesas.data', [
                 $dados['data_inicio'],
                 $dados['data_fim'],
