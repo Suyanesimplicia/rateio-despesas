@@ -49,7 +49,7 @@ class RateioService
                 $centavos = $totalCentavos - $centavosDistribuidos;
             } else {
                 $centavos = intdiv(
-                    $totalCentavos * $percentual + 500000,
+                    $totalCentavos * $percentual,
                     1000000
                 );
 
