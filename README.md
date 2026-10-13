@@ -670,6 +670,13 @@ Os testes verificam:
 - Reconhecimento de cabeçalho com BOM UTF-8.
 - Rejeição de cabeçalho inválido.
 
+### Teste de indisponibilidade da cotação
+
+O teste funcional DespesaCotacaoPendenteTest simula uma falha
+no serviço externo de cotação e verifica se a despesa em USD
+é preservada no banco de dados com status pendente,
+sem cotação ou valor convertido em reais.
+
 ### Testes básicos da aplicação
 
 Também são executados os testes padrão de unidade e funcionalidade do Laravel.
@@ -680,9 +687,9 @@ Na última execução durante o desenvolvimento:
 
 | Indicador | Resultado |
 |---|---:|
-| Testes executados | 9 |
-| Testes aprovados | 9 |
-| Asserções | 22 |
+| Testes executados | 10 |
+| Testes aprovados | 10 |
+| Asserções | 37 |
 | Falhas | 0 |
 
 Esses resultados correspondem aos testes existentes naquele momento, não a uma cobertura integral de todos os endpoints.
