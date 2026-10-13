@@ -104,7 +104,7 @@ class DespesaController extends Controller
                 'cotacao' => $cotacao,
                 'status_conversao' => 'convertido',
             ]);
-
+            
             $despesa->rateios()->createMany($distribuicao);
 
             return $despesa;
@@ -122,18 +122,113 @@ class DespesaController extends Controller
             Despesa::with('rateios')->findOrFail($id)
         );
     }
+    public function update(
+    Request $request,
+    string $id,
+    RateioService $rateioService,
+    CotacaoService $cotacaoService
+) {
+    $despesa = Despesa::findOrFail($id);
 
-    public function update(Request $request, string $id)
-    {
-        return response()->json([
-            'erro' => 'Atualização ainda não implementada.',
-        ], 501);
+    $dados = $request->validate([
+        'descricao' => 'required|string|max:255',
+        'fornecedor' => 'required|string|max:255',
+        'data' => 'required|date|before_or_equal:today',
+        'valor' => 'required|numeric|gt:0|decimal:0,2',
+        'moeda' => 'required|in:BRL,USD',
+
+        'rateios' => 'required|array|min:1',
+        'rateios.*.unidade_id' => [
+            'required',
+            'integer',
+            'distinct',
+            'exists:unidades,id',
+        ],
+        'rateios.*.percentual' => [
+            'required',
+            'numeric',
+            'gt:0',
+            'lte:100',
+            'decimal:0,4',
+        ],
+    ]);
+
+    $cotacao = '1.00000000';
+    $valorBrl = (string) $dados['valor'];
+
+    if ($dados['moeda'] === 'USD') {
+        try {
+            $cotacao = $cotacaoService->obterCotacao(
+                $dados['data']
+            );
+        } catch (RuntimeException $erro) {
+            return response()->json([
+                'message' => 'Não foi possível obter a cotação.',
+                'error' => $erro->getMessage(),
+            ], 503);
+        }
+
+        $centavos = (int) round(
+            (float) $dados['valor'] * (float) $cotacao * 100
+        );
+
+        $valorBrl = number_format(
+            $centavos / 100,
+            2,
+            '.',
+            ''
+        );
     }
+
+    try {
+        $distribuicao = $rateioService->calcular(
+            $valorBrl,
+            $dados['rateios']
+        );
+    } catch (InvalidArgumentException $erro) {
+        throw ValidationException::withMessages([
+            'rateios' => [$erro->getMessage()],
+        ]);
+    }
+
+    DB::transaction(function () use (
+        $despesa,
+        $dados,
+        $cotacao,
+        $valorBrl,
+        $distribuicao
+    ) {
+        $despesa->update([
+            'descricao' => $dados['descricao'],
+            'fornecedor' => $dados['fornecedor'],
+            'data' => $dados['data'],
+            'valor' => $dados['valor'],
+            'moeda' => $dados['moeda'],
+            'valor_brl' => $valorBrl,
+            'cotacao' => $cotacao,
+            'status_conversao' => 'convertido',
+        ]);
+
+        $despesa->rateios()->delete();
+        $despesa->rateios()->createMany($distribuicao);
+    });
+
+    return response()->json(
+        $despesa->fresh()->load('rateios')
+    );
+}
 
     public function destroy(string $id)
     {
+        $despesa = Despesa::findOrFail($id);
+
+        DB::transaction(function () use ($despesa) {
+            $despesa->rateios()->delete();
+            $despesa->delete();
+        });
+
         return response()->json([
-            'erro' => 'Exclusão ainda não implementada.',
-        ], 501);
+            'message' => 'Despesa excluída com sucesso.',
+        ]);
     }
 }

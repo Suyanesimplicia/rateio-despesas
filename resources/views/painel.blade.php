@@ -37,10 +37,24 @@
         }
 
         .card {
+            display: block;
             background: white;
             padding: 25px;
             border-radius: 12px;
             box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
+            text-decoration: none;
+            color: inherit;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+        }
+
+        .card:focus-visible {
+            outline: 3px solid #2563eb;
+            outline-offset: 3px;
         }
 
         .card h2 {
@@ -50,6 +64,11 @@
         .card p {
             color: #64748b;
             line-height: 1.5;
+        }
+
+        .card span {
+            color: #2563eb;
+            font-weight: bold;
         }
     </style>
 </head>
@@ -65,25 +84,29 @@
         <p>Bem-vindo ao sistema de gerenciamento de despesas.</p>
 
         <div class="cards">
-            <div class="card">
+            <a href="/unidades" class="card">
                 <h2>Unidades</h2>
                 <p>Cadastre e consulte as unidades das empresas.</p>
-            </div>
+                <span>Acessar →</span>
+            </a>
 
-            <div class="card">
+            <a href="/despesas" class="card">
                 <h2>Despesas</h2>
                 <p>Registre despesas e distribua os valores entre unidades.</p>
-            </div>
+                <span>Acessar →</span>
+            </a>
 
-            <div class="card">
+            <a href="/importacao" class="card">
                 <h2>Importação CSV</h2>
                 <p>Importe despesas em lote e consulte os erros encontrados.</p>
-            </div>
+                <span>Acessar →</span>
+            </a>
 
-            <div class="card">
+            <a href="/relatorios" class="card">
                 <h2>Relatórios</h2>
                 <p>Consulte os totais por unidade e período.</p>
-            </div>
+                <span>Acessar →</span>
+            </a>
         </div>
     </main>
 </body>

@@ -1,0 +1,4 @@
+data;descricao;fornecedor;valor;moeda;rateio
+2026-10-09;Internet;Operadora;150.00;BRL;1:60|2:40
+2026-10-09;Energia;Companhia Eletrica;200.00;BRL;1:50|2:30
+2026-10-09;Material de limpeza;Fornecedor ABC;80.00;BRL;1:70|2:30
